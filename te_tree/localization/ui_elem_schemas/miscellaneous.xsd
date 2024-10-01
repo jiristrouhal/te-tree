@@ -1,0 +1,16 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+
+<xs:include schemaLocation="./item.xsd"/>
+
+
+<xs:complexType name="Miscellaneous">
+    <xs:sequence>
+        <xs:element name="merged" type="item"/>
+        <xs:element name="new_group" type="item"/>
+        <xs:element name="backup_folder_name" type="item"/>
+    </xs:sequence>
+</xs:complexType>
+
+
+</xs:schema>

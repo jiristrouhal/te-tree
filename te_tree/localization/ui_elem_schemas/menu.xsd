@@ -1,0 +1,28 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+
+<xs:include schemaLocation="./item.xsd"/>
+
+
+<xs:complexType name="Item_Menu">
+    <xs:sequence>
+        <xs:element name="add" type="item"/>
+        <xs:element name="edit" type="item"/>
+        <xs:element name="copy" type="item"/>
+        <xs:element name="cut" type="item"/>
+        <xs:element name="duplicate" type="item"/>
+        <xs:element name="paste" type="item"/>
+        <xs:element name="merge" type="item"/>
+        <xs:element name="group" type="item" />
+        <xs:element name="ungroup" type="item" />
+        <xs:element name="delete" type="item"/>
+
+        <xs:element name="new_case" type="item"/>
+        <xs:element name="import_from_xml" type="item"/>
+        <xs:element name='save_to_existing_xml' type="item"/>
+        <xs:element name="export_to_xml" type="item"/>
+    </xs:sequence>
+</xs:complexType>
+
+
+</xs:schema>

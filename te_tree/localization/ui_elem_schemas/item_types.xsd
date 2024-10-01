@@ -1,0 +1,21 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+
+<xs:include schemaLocation="./item.xsd"></xs:include>
+
+
+<xs:complexType name="Item_Types">
+    <xs:sequence>
+        <xs:element name="Case" type="item"/>
+    </xs:sequence>
+</xs:complexType>
+
+
+<xs:complexType name="Item_Attributes">
+    <xs:sequence>
+        <xs:element name="name" type="item"/>
+    </xs:sequence>
+</xs:complexType>
+
+
+</xs:schema>

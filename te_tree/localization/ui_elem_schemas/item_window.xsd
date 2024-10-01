@@ -1,0 +1,17 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+
+<xs:include schemaLocation="./item.xsd"/>
+
+
+<xs:complexType name="Item_Window">
+    <xs:sequence>
+        <xs:element name="Title" type="item"/>
+        <xs:element name="Revert" type="item"/>
+        <xs:element name="OK" type="item"/>
+        <xs:element name="Cancel" type="item"/>
+    </xs:sequence>
+</xs:complexType>
+
+
+</xs:schema>

@@ -1,0 +1,25 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+
+<xs:include schemaLocation="./ui_elem_schemas/menu.xsd"></xs:include>
+<xs:include schemaLocation="./ui_elem_schemas/item_types.xsd"></xs:include>
+<xs:include schemaLocation="./ui_elem_schemas/item_window.xsd"></xs:include>
+<xs:include schemaLocation="./ui_elem_schemas/miscellaneous.xsd"></xs:include>
+
+
+<xs:element name="Language">
+<xs:complexType>
+    <xs:sequence>
+        <xs:element name="Item_Menu" type="Item_Menu"/>
+        <xs:element name="Item_Window" type="Item_Window"/>
+        <xs:element name="Item_Types" type="Item_Types"/>
+        <xs:element name="Item_Attributes" type="Item_Attributes"/>
+        <xs:element name="Miscellaneous" type="Miscellaneous" />
+    </xs:sequence>
+    <xs:attribute name="Id" type="xs:string"/>
+    <xs:attribute name="Name" type="xs:string"/>
+</xs:complexType>
+</xs:element>
+
+
+</xs:schema>
