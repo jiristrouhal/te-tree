@@ -1,6 +1,6 @@
 [project]
 name = "te_tree"
-version = "1.0.0"
+version = "0.2.0"
 
 [tool.setuptools.packages.find]
 include = ["te_tree", "tests"]
