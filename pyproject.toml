@@ -2,3 +2,6 @@
 name = "te_tree"
 version = "1.0.0"
 
+[tool.setuptools.packages.find]
+include = ["te_tree", "tests"]
+exclude = ["examples"]

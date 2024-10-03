@@ -230,9 +230,7 @@ class Test_Composed_Command(unittest.TestCase):
     def test_adding_command_under_invalid_timing_key(self):
         composed_command = Composed_Increment()
         with self.assertRaises(KeyError):
-            composed_command.add(
-                owner_id="test", func=self.get_cmd, timing="invalid key"
-            )
+            composed_command.add(owner_id="test", func=self.get_cmd, timing="invalid key")
 
     def test_adding_composed_command_under_invalid_timing_key(self):
         composed_command = Composed_Increment()
@@ -263,15 +261,11 @@ class Test_Composed_Command(unittest.TestCase):
         # each composed command should increment the integer by 5
 
         # the composed_command_pre adds the first 5 to the integer
-        composed_command.add_composed(
-            "test", data_converter, composed_command_pre, "pre"
-        )
+        composed_command.add_composed("test", data_converter, composed_command_pre, "pre")
         # the post-command of the composed_command follows, adding another 5
 
         # at last, the composed_command_post adds 5, which yields 15 in total
-        composed_command.add_composed(
-            "test", data_converter, composed_command_post, "post"
-        )
+        composed_command.add_composed("test", data_converter, composed_command_post, "post")
 
         # the increment is set the same for all three composed commands
         self.controller.run(*composed_command(IncrementIntData(self.obj, step=5)))
@@ -289,12 +283,8 @@ class Test_Composed_Command(unittest.TestCase):
             # return IncrementIntData(input_data)
 
         # replaces the original pre- composed_command
-        composed_command.add_composed(
-            "test", data_converter, composed_command_pre, "pre"
-        )
-        composed_command.add_composed(
-            "test", data_converter, composed_command_post, "post"
-        )
+        composed_command.add_composed("test", data_converter, composed_command_pre, "pre")
+        composed_command.add_composed("test", data_converter, composed_command_post, "post")
         self.controller.run(*composed_command(IncrementIntData(self.obj, step=5)))
         self.assertEqual(self.obj.i, 9)
 
@@ -331,10 +321,7 @@ class Test_Command_History(unittest.TestCase):
         controller.redo()
         self.assertEqual(
             controller.history,
-            "\n\n-  Increment\n"
-            "x  Increment\n"
-            "- Undo: Increment\n"
-            "x Redo: Increment\n",
+            "\n\n-  Increment\n" "x  Increment\n" "- Undo: Increment\n" "x Redo: Increment\n",
         )
 
 
