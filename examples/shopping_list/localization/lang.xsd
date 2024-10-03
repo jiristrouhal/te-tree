@@ -1,0 +1,50 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+
+<xs:include schemaLocation="https://raw.githubusercontent.com/jiristrouhal/te-tree/master/te_tree/localization/lang.xsd"></xs:include>
+
+
+<xs:redefine schemaLocation="https://raw.githubusercontent.com/jiristrouhal/te-tree/master/te_tree/localization/ui_elem_schemas/menu.xsd">
+    <xs:complexType name="Item_Menu">
+    <xs:complexContent>
+        <xs:extension base="Item_Menu">
+        <xs:group ref="Item_Types"></xs:group>
+        </xs:extension>
+    </xs:complexContent>
+    </xs:complexType>
+</xs:redefine>
+
+
+<xs:redefine schemaLocation="https://raw.githubusercontent.com/jiristrouhal/te-tree/master/te_tree/localization/ui_elem_schemas/item_types.xsd">
+    <xs:complexType name="Item_Types">
+    <xs:complexContent>
+        <xs:extension base="Item_Types">
+            <xs:sequence>
+                <xs:group ref="Item_Types"/>
+            </xs:sequence>
+        </xs:extension>
+    </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Item_Attributes">
+        <xs:complexContent>
+            <xs:extension base="Item_Attributes">
+                <xs:sequence>
+                    <xs:element name="total" type="item"/>
+                    <xs:element name="price" type="item"/>
+                    <xs:element name="description" type="item"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+        </xs:complexType>
+</xs:redefine>
+
+<xs:group name="Item_Types">
+    <xs:sequence>
+        <xs:element name="Item" type="item" />
+        <xs:element name="Group" type="item"/>
+    </xs:sequence>
+</xs:group>
+
+
+</xs:schema>

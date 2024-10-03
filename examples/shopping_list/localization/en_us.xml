@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?xml-model
+    href="./lang.xsd"
+    type="application/xml"
+    schematypens="http://www.w3.org/2001/XMLSchema"
+?>
+
+<Language Id="en_us" Name="English">
+    <Item_Menu>
+        <add Text="Add"/>
+        <edit Text="Edit..."/>
+        <copy Text="Copy"/>
+        <cut Text="Cut" />
+        <duplicate Text="Duplicate" />
+        <paste Text="Paste" />
+        <merge Text="Merge" />
+        <group Text="Group" />
+        <ungroup Text="Ungroup" />
+        <delete Text="Remove"/>
+
+        <new_case Text="New case"/>
+        <import_from_xml Text="Load..."/>
+        <save_to_existing_xml Text="Save" />
+        <export_to_xml Text="Save as..."/>
+
+        <Item Text="Item"/>
+        <Group Text="Group" />
+    </Item_Menu>
+
+    <Item_Window>
+        <Title Text="Edit" />
+        <Revert Text="Revert"/>
+        <OK Text="OK"/>
+        <Cancel Text="Cancel"/>
+    </Item_Window>
+
+    <Item_Types>
+        <Case Text="Case"/>
+        <Item Text="Item" />
+        <Group Text="Group" />
+    </Item_Types>
+
+    <Item_Attributes>
+        <name Text="Name"/>
+        <total Text="Total" />
+        <price Text="Price"/>
+        <description Text="Description" />
+    </Item_Attributes>
+
+    <Miscellaneous>
+        <merged Text="Merged" />
+        <new_group Text="Grouped" />
+        <backup_folder_name Text="old versions" />
+    </Miscellaneous>
+
+</Language>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?xml-model
+    href="./lang.xsd"
+    type="application/xml"
+    schematypens="http://www.w3.org/2001/XMLSchema"
+?>
+
+
+<Language Id="cs_cz" Name="Čeština">
+    <Item_Menu>
+        <add Text="Přidat"/>
+        <edit Text="Upravit..."/>
+        <copy Text="Kopírovat"/>
+        <cut Text="Vyjmout" />
+        <duplicate Text="Kopírovat sem" />
+        <paste Text="Vložit" />
+        <merge Text="Sloučit" />
+        <group Text="Seskupit" />
+        <ungroup Text="Rozložit" />
+        <delete Text="Odstranit"/>
+
+        <new_case Text="Nový"/>
+        <import_from_xml Text="Načíst..."/>
+        <save_to_existing_xml Text="Uložit"/>
+        <export_to_xml Text="Uložit jako..."/>
+
+        <Item Text="Předmět"/>
+        <Group Text="Skupina" />
+    </Item_Menu>
+
+    <Item_Window>
+        <Title Text="Upravit" />
+        <Revert Text="Výchozí"/>
+        <OK Text="OK"/>
+        <Cancel Text="Zrušit"/>
+    </Item_Window>
+
+    <Item_Types>
+        <Case Text="Případ"/>
+        <Item Text="Předmět"/>
+        <Group Text="Skupina" />
+    </Item_Types>
+
+    <Item_Attributes>
+        <name Text="Název"/>
+        <total Text="Celkem"/>
+        <price Text="Cena" />
+        <description Text="Popis"/>
+    </Item_Attributes>
+
+    <Miscellaneous>
+        <merged Text="Sloučeno" />
+        <new_group Text="Seskupeno" />
+        <backup_folder_name Text="staré verze" />
+    </Miscellaneous>
+
+</Language>

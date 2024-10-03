@@ -1,0 +1,9 @@
+{
+    "application_name": "ShoppingList",
+    "localization": "en_us",
+    "allow_item_name_duplicates": true,
+    "currency": "USD",
+    "editor_precision": 3,
+    "show_trailing_zeros": true,
+    "use_thousands_separator": true
+}
