@@ -25,8 +25,14 @@ To run unit tests, make sure you have completed instruction in the [before use](
 
 Run tests:
 ```bash
-python3 -m tests
+python3 -m tests [-h] [PATH1] [PATH2] ...
 ```
+
+Each PATH is specified relative to the tests folder. If no PATH is specified, all the tests will run. Otherwise
+
+when PATH is a directory, the script will run all tests in this directory (and subdirectories),
+when PATH is a Python file, the script will run all tests in the file.
+The -h flag makes the script display tests' coverage in an HTML format, for example in your web browser.
 
 ## Other notes
 
