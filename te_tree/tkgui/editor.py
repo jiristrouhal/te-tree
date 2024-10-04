@@ -1,12 +1,10 @@
 import tkinter as tk
+from tkinter.filedialog import askopenfilename, askdirectory
+import os
 
 from te_tree.core.editor import EditorUI, Editor, Lang_Object
 from te_tree.tkgui.item_actions import Item_Menu_Tk, Item_Window_Tk
 from te_tree.tkgui.caseview import Case_View_Tk
-
-from typing import Tuple, Dict
-from tkinter.filedialog import askopenfilename, askdirectory
-import os
 
 
 class Editor_Tk(EditorUI):
@@ -15,9 +13,9 @@ class Editor_Tk(EditorUI):
         self,
         editor: Editor,
         master_window: tk.Tk | tk.Frame,
-        displayable_attributes: Dict[str, Tuple[str, ...]],
+        displayable_attributes: dict[str, tuple[str, ...]],
         lang: Lang_Object,
-        icons: Dict[str, str] = {},
+        icons: dict[str, str] = {},
     ) -> None:
 
         self.__editor = editor
@@ -34,7 +32,7 @@ class Editor_Tk(EditorUI):
         self.__caseview.widget.bind(
             "<Button-3>", self.__caseview.do_on_tree_item(self.open_item_menu)
         )
-        self.__caseview.widget.bind("<Double-Button-1>", self.__double_left_click_action)
+        self.__caseview.widget.bind("<Double-Button-1>", self._double_left_click_action)
         self.__caseview.widget.bind("<Control-z>", lambda e: self.__editor.undo())
         self.__caseview.widget.bind("<Control-y>", lambda e: self.__editor.redo())
         self.__caseview.widget.bind("<Delete>", self.__caseview.do_on_tree_item(self.delete_item))
@@ -46,11 +44,11 @@ class Editor_Tk(EditorUI):
         self.__caseview.widget.bind("<Control-G>", lambda e: self.__editor.ungroup_selection())
         self.__caseview.widget.bind("<Control-s>", lambda e: self.save_selected_cases_to_xml())
 
-    def __double_left_click_action(self, event: tk.Event) -> str:
+    def _double_left_click_action(self, event: tk.Event) -> str:
         self.__caseview.do_on_tree_item(self.open_item_window)(event)
         return "break"
 
-    def _get_xml_path(self) -> Tuple[str, str]:
+    def _get_xml_path(self) -> tuple[str, str]:
         case_full_path = askopenfilename(defaultextension="xml", filetypes=[("xml", "xml")])
         if case_full_path is None:
             return "", ""

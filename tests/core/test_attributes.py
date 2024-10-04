@@ -1,13 +1,10 @@
 from __future__ import annotations
-
-import sys
-
-sys.path.insert(1, "src")
-
-
 import unittest
 import dataclasses
 from typing import Any
+import sys
+
+sys.path.insert(1, "src")
 
 from te_tree.core.attributes import (
     attribute_factory,
@@ -17,6 +14,12 @@ from te_tree.core.attributes import (
     Attribute_Factory,
 )
 from te_tree.cmd.commands import Controller, Command
+from te_tree.core.attributes import (
+    Attribute_Factory,
+    Dependency,
+    Number_Attribute,
+    Quantity
+)
 
 
 class Test_Creating_Attributes(unittest.TestCase):
@@ -107,9 +110,6 @@ class Test_Creating_Attributes(unittest.TestCase):
         self.assertRaises(Attribute.InvalidValueType, x.is_valid, complex(1, 0))
 
 
-from te_tree.core.attributes import Attribute_Factory, Number_Attribute
-
-
 class Test_Undo_And_Redo_Setting_Attribute_Values(unittest.TestCase):
 
     @dataclasses.dataclass
@@ -158,9 +158,6 @@ class Test_Undo_And_Redo_Setting_Attribute_Values(unittest.TestCase):
         self.assertEqual(volume.value, 5)
         fac.redo()
         self.assertEqual(volume.value, 10)
-
-
-from te_tree.core.attributes import Dependency
 
 
 class Test_Dependent_Attributes(unittest.TestCase):
@@ -609,7 +606,7 @@ class Test_Reading_Integer_And_Real_Attribute_Value_From_Text(unittest.TestCase)
     def test_reading_integer_from_text(self):
         fac = attribute_factory(Controller())
         attr = fac.new("integer")
-        self.__common_tests_for_int_and_real(attr)
+        self._common_tests_for_int_and_real(attr)
         self.assertRaises(Integer_Attribute.CannotExtractInteger, attr.read, "")
         self.assertRaises(Integer_Attribute.CannotExtractInteger, attr.read, "   ")
         self.assertRaises(Integer_Attribute.CannotExtractInteger, attr.read, "asdfd ")
@@ -618,7 +615,7 @@ class Test_Reading_Integer_And_Real_Attribute_Value_From_Text(unittest.TestCase)
     def test_reading_real_from_text(self):
         fac = attribute_factory(Controller())
         attr = fac.new("real")
-        self.__common_tests_for_int_and_real(attr)
+        self._common_tests_for_int_and_real(attr)
 
         attr.read("0.001")
         self.assertEqual(attr.value, Decimal(str(0.001)))
@@ -637,7 +634,7 @@ class Test_Reading_Integer_And_Real_Attribute_Value_From_Text(unittest.TestCase)
         self.assertRaises(Real_Attribute_Dimensionless.CannotExtractReal, attr.read, " ")
         self.assertRaises(Real_Attribute_Dimensionless.CannotExtractReal, attr.read, "asdfd ")
 
-    def __common_tests_for_int_and_real(self, attr: Attribute) -> None:
+    def _common_tests_for_int_and_real(self, attr: Attribute) -> None:
         attr.read("789")
         self.assertEqual(attr.value, 789)
         attr.read("-78")
@@ -1354,14 +1351,14 @@ class Test_Attribute_List_Set_Method(unittest.TestCase):
         def redo(self):
             self.counter.count += 1
 
-    def __attr_cmd(self, data: Set_Attr_Data) -> Increment_Attr:
+    def _attr_cmd(self, data: Set_Attr_Data) -> Increment_Attr:
         return self.Increment_Attr(self.set_calls_counter)
 
     def setUp(self) -> None:
         self.fac = attribute_factory(Controller())
         self.alist = self.fac.newlist("integer")
         self.set_calls_counter = self.Set_Cmd_Call_Counter(count=0)
-        self.alist.on_set("test", self.__attr_cmd, "post")
+        self.alist.on_set("test", self._attr_cmd, "post")
 
     def test_running_command_on_calling_set_method_of_attribute_list(self) -> None:
         self.assertEqual(self.set_calls_counter.count, 0)
@@ -1455,9 +1452,6 @@ class Test_Attribute_List_Set_Method(unittest.TestCase):
         self.assertEqual(self.set_calls_counter.count, 2)
 
 
-from typing import List
-
-
 class Test_Calculating_Single_Attribute_From_Attribute_List(unittest.TestCase):
 
     def test_dot_product(self):
@@ -1482,7 +1476,7 @@ class Test_Calculating_Single_Attribute_From_Attribute_List(unittest.TestCase):
         scale.set(1.0)
         x = fac.newlist("real", [1.0 for _ in range(5)])
 
-        def getsum(s: float, x: List[float]) -> float:
+        def getsum(s: float, x: list[float]) -> float:
             return s * sum(x)
 
         scaledsum.add_dependency(getsum, scale, x)
@@ -1501,7 +1495,7 @@ class Test_Calculating_Single_Attribute_From_Attribute_List(unittest.TestCase):
         weights = fac.newlist("real", [1, 2])
         values = fac.newlist("real", [4, 1])
 
-        def w_average(values: List[float], weights: List[float]) -> float:
+        def w_average(values: list[float], weights: list[float]) -> float:
             return sum([v * w for v, w in zip(values, weights)]) / sum(weights)
 
         result.add_dependency(w_average, values, weights)
@@ -1519,7 +1513,7 @@ class Test_Calculating_Single_Attribute_From_Attribute_List(unittest.TestCase):
         for k in range(len(summands.attributes)):
             summands[k].rename(f"summand {k}")
 
-        def getsum(x: List[int]) -> int:
+        def getsum(x: list[int]) -> int:
             return sum(x)
 
         result.add_dependency(getsum, summands)
@@ -1566,15 +1560,12 @@ class Test_Calculating_Single_Attribute_From_Attribute_List(unittest.TestCase):
         self.assertEqual(y.value, 6)
 
 
-from typing import Tuple
-
-
 class Test_Using_Attribute_List_As_Output(unittest.TestCase):
 
     def setUp(self) -> None:
         self.fac = attribute_factory(Controller())
 
-    def foo(self, inputval: int) -> List[int]:
+    def foo(self, inputval: int) -> list[int]:
         return [inputval for _ in range(3)]
 
     def test_copy_single_value_to_all_items_in_list(self):
@@ -1655,7 +1646,7 @@ class Test_Using_Attribute_List_As_Output(unittest.TestCase):
         v = self.fac.newlist("real", [0, 1, 0])
         w = self.fac.newlist("real", [0, 0, 0])
 
-        def cross(u: Tuple[int, int, int], v: Tuple[int, int, int]) -> Tuple[int, int, int]:
+        def cross(u: tuple[int, int, int], v: tuple[int, int, int]) -> tuple[int, int, int]:
             return (
                 u[1] * v[2] - u[2] * v[1],
                 u[2] * v[0] - u[0] * v[2],
@@ -1673,7 +1664,7 @@ class Test_Using_Attribute_List_As_Output(unittest.TestCase):
         masses = self.fac.newlist("real", [3, 5, 2])
         fractions = self.fac.newlist("real", [0, 0, 0])
 
-        def get_mass_fractions(masses: Tuple[float, ...]) -> Tuple[float, ...]:
+        def get_mass_fractions(masses: tuple[float, ...]) -> tuple[float, ...]:
             total_mass = sum(masses)
             if total_mass == 0:
                 return tuple([0 for _ in masses])
@@ -1714,8 +1705,8 @@ class Test_Nested_Attribute_Lists(unittest.TestCase):
         v = self.fac.newlist("integer", [2, 3])
 
         def outer_product(
-            u: Tuple[int, int], v: Tuple[int, int]
-        ) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+            u: tuple[int, int], v: tuple[int, int]
+        ) -> tuple[tuple[int, int], tuple[int, int]]:
             return ((u[0] * v[0], u[0] * v[1]), (u[1] * v[0], u[1] * v[1]))
 
         prod = self.fac.newlist("integer")
@@ -1746,7 +1737,7 @@ class Test_Copying_Attribute_List(unittest.TestCase):
         self.assertListEqual(alistcopy.value, [1, 4, 3])
 
     def test_attribute_list_is_copied_without_dependency(self) -> None:
-        def copyval(x: int) -> List[int]:
+        def copyval(x: int) -> list[int]:
             return [x for _ in range(3)]
 
         x = self.fac.new("integer", 1)
@@ -1825,9 +1816,6 @@ class Test_Bool_Attribute(unittest.TestCase):
         self.assertEqual(switch.print(), "False")
         switch.set(1)
         self.assertEqual(switch.print(), "True")
-
-
-from te_tree.core.attributes import Quantity
 
 
 class Test_Quantity(unittest.TestCase):
@@ -2352,7 +2340,6 @@ class Test_Undoing_Setting_Values_Of_Attribute_List(unittest.TestCase):
         afac.undo()  # undo a1 removal
         self.assertEqual(a1.value, 3)
         self.assertEqual(a2.value, 5)
-        # self.assertEqual(alist.value, [3,5])
 
         afac.undo()  # undo a2 addition
         self.assertEqual(a2.value, 5)
@@ -2360,6 +2347,4 @@ class Test_Undoing_Setting_Values_Of_Attribute_List(unittest.TestCase):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    # runner = unittest.TextTestRunner()
-    # runner.run(Test_Nested_Attribute_Lists("test_outer_product"))
     unittest.main()

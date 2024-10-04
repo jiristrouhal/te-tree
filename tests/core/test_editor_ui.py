@@ -1,13 +1,14 @@
 from __future__ import annotations
 import sys
 import unittest
-from typing import Any, Callable, Dict, Set, Tuple
+from typing import Any, Callable
 
 sys.path.insert(1, "src")
 
 from te_tree.core.item import Item
 from te_tree.core.editor import new_editor, blank_case_template
 from te_tree.core.editor import EditorUI, Item_Menu, Item_Window, Case_View
+from te_tree.core.editor import Item_Menu_Cmds
 
 
 class Item_Menu_Test(Item_Menu):
@@ -33,7 +34,7 @@ class Item_Window_Test(Item_Window):
 class Case_View_Test(Case_View):
 
     @property
-    def selected_items(self) -> Set(Item):
+    def selected_items(self) -> set[Item]:
         return set()
 
     def configure(self, **kwargs) -> None:
@@ -42,7 +43,7 @@ class Case_View_Test(Case_View):
     def is_in_view(self, item_id: str) -> bool:
         return True
 
-    def tree_row_values(self, item_id: str) -> Dict[str, Any]:
+    def tree_row_values(self, item_id: str) -> dict[str, Any]:
         return {}
 
     def on_selection_change(self, func: Callable[[], None]) -> None:
@@ -57,7 +58,7 @@ class Editor_UI_Test(EditorUI):
     def _get_export_dir(self) -> str:
         return ""
 
-    def _get_xml_path(self) -> Tuple[str, str]:
+    def _get_xml_path(self) -> tuple[str, str]:
         return ("", "")
 
 
@@ -125,9 +126,6 @@ class Test_Item_Menu(unittest.TestCase):
         self.menu.actions.insert({"Command on 2nd level": command_on_2nd_level}, "group")
         self.menu.run("Command on 2nd level", "group")
         self.assertEqual(self.x, 89)
-
-
-from te_tree.core.editor import Item_Menu_Cmds
 
 
 class Test_Defining_Cascade_Menu(unittest.TestCase):

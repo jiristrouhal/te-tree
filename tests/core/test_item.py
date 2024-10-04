@@ -1,14 +1,22 @@
 from __future__ import annotations
-
-
+import unittest
+import math, decimal
 import sys
+import dataclasses
 
 sys.path.insert(1, "src")
 
-
-import unittest
-from te_tree.core.item import ItemCreator, Item, ItemImpl
-import math, decimal
+from te_tree.core.item import (
+    ItemCreator,
+    Item,
+    ItemImpl,
+    freeatt,
+    freeatt_parent,
+    freeatt_child
+)
+from te_tree.cmd.commands import Command
+from te_tree.core.item import Parentage_Data, Renaming_Data
+from te_tree.core.attributes import Attribute_Data_Constructor
 
 
 NullItem = ItemImpl.NULL
@@ -490,11 +498,6 @@ class Test_Undo_And_Redo_Multiple_Operations(unittest.TestCase):
         self.assertEqual(child.name, "The First Child")
 
 
-from te_tree.cmd.commands import Command
-from te_tree.core.item import Parentage_Data
-import dataclasses
-
-
 class Test_Connecting_External_Commands_To_The_Adopt_Command(unittest.TestCase):
 
     @dataclasses.dataclass
@@ -566,9 +569,6 @@ class Test_Connecting_External_Commands_To_The_Adopt_Command(unittest.TestCase):
         self.mg.undo()
         self.assertEqual(self.display.message, "")
         self.assertEqual(self.display.count, 0)
-
-
-from te_tree.core.item import Renaming_Data
 
 
 class Test_Adding_External_Command_To_Renaming(unittest.TestCase):
@@ -902,9 +902,6 @@ class Test_Binding_Attributes_Owned_By_The_Same_Item(unittest.TestCase):
         self.assertEqual(self.item("y"), 4)
 
 
-from typing import List
-
-
 class Test_Binding_Item_Attribute_To_Its_Children(unittest.TestCase):
 
     def setUp(self) -> None:
@@ -913,7 +910,7 @@ class Test_Binding_Item_Attribute_To_Its_Children(unittest.TestCase):
         self.parent = self.mg.new("Parent", {"y": "integer"})
 
     @staticmethod
-    def sum_x(x: List[int]) -> int:
+    def sum_x(x: list[int]) -> int:
         return sum(x)
 
     def test_parent_attribute_can_be_bound_to_any_attribute_that_is_expected_to_be_owned_by_some_of_its_children(
@@ -1034,9 +1031,6 @@ class Test_Binding_Item_Attribute_To_Its_Children(unittest.TestCase):
         self.assertEqual(child("y"), 5)
 
 
-from te_tree.core.item import freeatt, freeatt_parent, freeatt_child
-
-
 class Test_Examples_Of_Calculations_On_Child_Attributes(unittest.TestCase):
 
     def setUp(self) -> None:
@@ -1051,7 +1045,7 @@ class Test_Examples_Of_Calculations_On_Child_Attributes(unittest.TestCase):
         childA.set("x", 5)
         childB.set("x", 3)
 
-        def arithmetic_average(x: List[decimal.Decimal]) -> decimal.Decimal | float:
+        def arithmetic_average(x: list[decimal.Decimal]) -> decimal.Decimal | float:
             if not x:
                 return math.nan
             return decimal.Decimal(sum(x)) / len(x)
@@ -1074,7 +1068,7 @@ class Test_Examples_Of_Calculations_On_Child_Attributes(unittest.TestCase):
         self.parent.adopt(childA)
         self.parent.adopt(childB)
 
-        def sumif(x: List[float], val: List[int]) -> float:
+        def sumif(x: list[float], val: list[int]) -> float:
             return sum([xi for xi, vi in zip(x, val) if vi == True])
 
         self.parent.bind(
@@ -1217,9 +1211,6 @@ class Test_Running_Additional_Command_When_Leaving_Child(unittest.TestCase):
         self.parent.pass_to_new_parent(self.child, other_parent)
         self.assertEqual(self.message_before.text, "Leaving Child")
         self.assertEqual(self.message_after.text, "Left Child")
-
-
-from te_tree.core.attributes import Attribute_Data_Constructor
 
 
 class Test_Defining_Item_Attributes_Via_Special_Methods(unittest.TestCase):

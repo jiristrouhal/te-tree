@@ -1,57 +1,60 @@
 from __future__ import annotations
+from decimal import Decimal
+from typing import Any, Optional, Callable, Literal
+import abc
+import re
+from functools import partial
+import os
 
+import xml.etree.ElementTree as et
 
-from typing import Tuple, Dict, List, Any, Optional, Callable, Literal
-from te_tree.core.item import ItemCreator, Item, Template, Attribute_Data_Constructor
+from te_tree.core.attributes import Attribute
 from te_tree.core.item import (
+    ItemCreator,
+    ItemImpl,
+    Item,
+    Template,
+    Attribute_Data_Constructor,
     FileType,
     freeatt,
     freeatt_child,
     freeatt_parent,
 )  # keep these imports to be further imported elsewhere
-from te_tree.core.attributes import Locale_Code
-from te_tree.core.item import ItemImpl
-
-import re
+from te_tree.core.attributes import Locale_Code, Currency_Code
 
 
 CASE_TYPE_LABEL = "__Case__"
 
 
-from decimal import Decimal
-
 MergeRule = Literal["sum", "join_texts", "max", "min"]
-_MergeFunc = Callable[[List[Any]], Any]
-
-
-from te_tree.core.attributes import Currency_Code
+_MergeFunc = Callable[[list[Any]], Any]
 
 
 class CaseTemplate:
     def __init__(self) -> None:
-        self._templates: Dict[str, Template] = {}
-        self._case_child_labels: List[str] = list()
-        self._attributes: Dict[str, Dict[str, Any]] = {}
+        self._templates: dict[str, Template] = {}
+        self._case_child_labels: list[str] = list()
+        self._attributes: dict[str, dict[str, Any]] = {}
         self._constructor = Attribute_Data_Constructor()
         self._insertable: str = ""
         self._currency: Currency_Code = "USD"
         self._case_template: Optional[Template] = None
-        self._merge_rules: Dict[str, Dict[str, _MergeFunc]] = dict()
+        self._merge_rules: dict[str, dict[str, _MergeFunc]] = dict()
 
     @property
     def attr(self) -> Attribute_Data_Constructor:
         return self._constructor
 
     @property
-    def templates(self) -> Dict[str, Template]:
+    def templates(self) -> dict[str, Template]:
         return self._templates
 
     @property
-    def case_child_labels(self) -> Tuple[str, ...]:
+    def case_child_labels(self) -> tuple[str, ...]:
         return tuple(self._case_child_labels)
 
     @property
-    def attributes(self) -> Dict[str, Dict[str, Any]]:
+    def attributes(self) -> dict[str, dict[str, Any]]:
         return self._attributes.copy()
 
     @property
@@ -63,15 +66,15 @@ class CaseTemplate:
         return self._currency
 
     @property
-    def merging_rules(self) -> Dict[str, Dict[str, _MergeFunc]]:
+    def merging_rules(self) -> dict[str, dict[str, _MergeFunc]]:
         return self._merge_rules.copy()
 
     def add(
         self,
         label: str,
-        attribute_info: Dict[str, Dict[str, Any]],
-        child_template_labels: Tuple[str, ...] = (),
-        dependencies: Optional[List[Template.Dependency]] = None,
+        attribute_info: dict[str, dict[str, Any]],
+        child_template_labels: tuple[str, ...] = (),
+        dependencies: Optional[list[Template.Dependency]] = None,
     ) -> None:
 
         label = label.strip()
@@ -99,9 +102,9 @@ class CaseTemplate:
 
     def set_case_template(
         self,
-        attribute_info: Dict[str, Dict[str, Any]],
-        child_template_labels: Tuple[str, ...],
-        dependencies: Optional[List[Template.Dependency]] = None,
+        attribute_info: dict[str, dict[str, Any]],
+        child_template_labels: tuple[str, ...],
+        dependencies: Optional[list[Template.Dependency]] = None,
     ) -> None:
 
         self.add(CASE_TYPE_LABEL, attribute_info, child_template_labels, dependencies)
@@ -112,7 +115,7 @@ class CaseTemplate:
                 raise CaseTemplate.UndefinedTemplate(label)
             self._case_child_labels.append(label)
 
-    def add_merging_rule(self, itype: str, attribute_rules: Dict[str, MergeRule]) -> None:
+    def add_merging_rule(self, itype: str, attribute_rules: dict[str, MergeRule]) -> None:
         if not itype in self._templates:
             raise CaseTemplate.AddingMergeRuleToUndefinedItemType(itype)
         elif itype in self._merge_rules:
@@ -149,7 +152,7 @@ class CaseTemplate:
             raise CaseTemplate.UndefinedTemplate(template_label)
         self._insertable = template_label
 
-    def _list_templates(self) -> Tuple[Template, ...]:
+    def _list_templates(self) -> tuple[Template, ...]:
         returned_templates = list(self._templates.values())
         if not CASE_TYPE_LABEL in self._templates:
             returned_templates.insert(
@@ -157,7 +160,7 @@ class CaseTemplate:
             )
         return tuple(returned_templates)
 
-    _merge_func: Dict[MergeRule, _MergeFunc] = {
+    _merge_func: dict[MergeRule, _MergeFunc] = {
         "sum": lambda x: sum(Decimal(str(xi)) for xi in x),
         "max": lambda x: max(x),
         "min": lambda x: min(x),
@@ -218,12 +221,12 @@ class Editor:
         self._copied_item: Optional[Item] = None
 
         self._selection: set[Item] = set()
-        self._actions_on_selection: Dict[str, List[Callable[[], None]]] = dict()
+        self._actions_on_selection: dict[str, list[Callable[[], None]]] = dict()
 
-        self._merging_rules: Dict[str, Dict[str, _MergeFunc]] = case_template.merging_rules.copy()
+        self._merging_rules: dict[str, dict[str, _MergeFunc]] = case_template.merging_rules.copy()
 
     @property
-    def attributes(self) -> Dict[str, Dict[str, Any]]:
+    def attributes(self) -> dict[str, dict[str, Any]]:
         return self._attributes
 
     @property
@@ -255,7 +258,7 @@ class Editor:
         return self._copied_item
 
     @property
-    def selection(self) -> List[Item]:
+    def selection(self) -> list[Item]:
         return list(self._selection)
 
     @property
@@ -281,7 +284,7 @@ class Editor:
         )
         return can_paste_under or can_paste_next_to
 
-    def _cases(self) -> Set[Item]:
+    def _cases(self) -> set[Item]:
         return self._root.children.copy()
 
     def can_save_as_item(self, item: Item) -> bool:
@@ -423,7 +426,7 @@ class Editor:
                 return False
         return True
 
-    def item_types_to_create(self, parent: Item) -> Tuple[str, ...]:
+    def item_types_to_create(self, parent: Item) -> tuple[str, ...]:
         return self._creator.get_template(parent.itype).child_itypes
 
     def load_case(self, dirpath: str, name: str, ftype: FileType) -> Item:
@@ -442,10 +445,10 @@ class Editor:
         self._check_items_are_mergeable(*items)
 
         @self._creator._controller.single_cmd()
-        def __set_merged_item_attributes(items: List[Item], merged_item: Item) -> None:
+        def _set_merged_item_attributes(items: list[Item], merged_item: Item) -> None:
             new_name = "; ".join([item.name for item in items])
             merged_item.rename(self._lang.label("Miscellaneous", "merged") + ": " + new_name)
-            new_vals: Dict[Attribute, Any] = dict()
+            new_vals: dict[Attribute, Any] = dict()
             for attr, func in self._merging_rules[merged_item.itype].items():
                 new_vals[merged_item.attribute(attr)] = func([item(attr) for item in items])
             merged_item.attribute(attr).set_multiple(new_vals)
@@ -455,7 +458,7 @@ class Editor:
             parent, itype = items[0].parent, items[0].itype
             merge_result = self.new(parent, itype)
             # parent must leave the original items
-            __set_merged_item_attributes(items, merge_result)
+            _set_merged_item_attributes(items, merge_result)
             parent.leave(*items)
             return merge_result
 
@@ -554,7 +557,7 @@ class Editor:
                 return
         self._selection.add(item)
 
-    def selection_set(self, items: List[Item]) -> None:
+    def selection_set(self, items: list[Item]) -> None:
         if self._root in items:
             items.remove(self._root)
         self._selection = items.copy()
@@ -610,20 +613,17 @@ def blank_case_template() -> CaseTemplate:
     return CaseTemplate()
 
 
-from typing import Set
-
-
 class Item_Menu_Cmds:
 
-    def __init__(self, init_cmds: Dict[str, Callable[[], Item | None]] = {}) -> None:
-        self._items: Dict[str, Item_Menu_Cmds | Callable[[], Item | None] | None] = dict()
-        self._children: Dict[str, Item_Menu_Cmds] = dict()
-        self._custom_cmds_after_menu_cmd: Set[Callable[[], None]] = set()
+    def __init__(self, init_cmds: dict[str, Callable[[], Item | None]] = {}) -> None:
+        self._items: dict[str, Item_Menu_Cmds | Callable[[], Item | None] | None] = dict()
+        self._children: dict[str, Item_Menu_Cmds] = dict()
+        self._custom_cmds_after_menu_cmd: set[Callable[[], None]] = set()
 
         self.insert(init_cmds)
 
     @property
-    def items(self) -> Dict[str, Item_Menu_Cmds | Callable[[], None | Item]]:
+    def items(self) -> dict[str, Item_Menu_Cmds | Callable[[], None | Item]]:
         return self._items.copy()
 
     def add_post_cmd(self, cmd: Callable[[], None]) -> None:
@@ -637,7 +637,7 @@ class Item_Menu_Cmds:
             assert callable(cmd)
             return cmd
 
-    def insert(self, commands: Dict[str, Callable[[], None | Item]], *cmd_path: str) -> None:
+    def insert(self, commands: dict[str, Callable[[], None | Item]], *cmd_path: str) -> None:
         if not commands:
             return
         if cmd_path:
@@ -651,7 +651,7 @@ class Item_Menu_Cmds:
     def insert_sep(self) -> None:
         self._items[f"__sep__{len(self._items)}"] = None
 
-    def labels(self, *cmd_path: str) -> List[str]:
+    def labels(self, *cmd_path: str) -> list[str]:
         if cmd_path:
             if cmd_path[0] not in self._children:
                 return []
@@ -663,11 +663,6 @@ class Item_Menu_Cmds:
         self.cmd(label, *cmd_path)()
         for cmd in self._custom_cmds_after_menu_cmd:
             cmd()
-
-
-import abc
-from functools import partial
-import os
 
 
 class EditorUI(abc.ABC):
@@ -700,7 +695,7 @@ class EditorUI(abc.ABC):
         return self._editor
 
     def _pass_caseview_selection_to_editor(self) -> None:
-        self.editor.selection_set(self.caseview.selected_items)
+        self.editor.selection_set(list(self.caseview.selected_items))
 
     @abc.abstractmethod
     def _compose(self) -> None:
@@ -733,7 +728,7 @@ class EditorUI(abc.ABC):
     def save_selected_cases_to_xml(self) -> None:
         if not self.caseview.selected_items:
             return
-        selected_cases: Set[Item] = {
+        selected_cases: set[Item] = {
             self._editor.its_case(item) for item in self.caseview.selected_items
         }
         for selected_case in selected_cases:
@@ -753,7 +748,7 @@ class EditorUI(abc.ABC):
             self._editor.save(case, "xml")
 
     @abc.abstractmethod
-    def _get_xml_path(self) -> Tuple[str, str]:
+    def _get_xml_path(self) -> tuple[str, str]:
         pass
 
     @abc.abstractmethod
@@ -835,11 +830,6 @@ class EditorUI(abc.ABC):
         pass
 
 
-from typing import Callable
-from te_tree.core.attributes import Attribute
-import abc
-
-
 class Item_Window(abc.ABC):
 
     def __init__(self, lang: Optional[Lang_Object] = None) -> None:
@@ -865,7 +855,7 @@ class Item_Window(abc.ABC):
         rename_action = lambda: item._rename(name_attr.value)
 
         name_attr.add_action_on_set("item_window", rename_action)
-        attributes: Dict[str, Attribute] = {"name": name_attr}
+        attributes: dict[str, Attribute] = {"name": name_attr}
         attributes.update(item.attributes)
         self._build_window(attributes)
         self._open = True
@@ -879,7 +869,7 @@ class Item_Window(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _build_window(self, attributes: Dict[str, Attribute]):
+    def _build_window(self, attributes: dict[str, Attribute]):
         pass  # pragma: no cover
 
     @abc.abstractmethod
@@ -906,7 +896,7 @@ class Item_Menu(abc.ABC):
     def lang(self) -> Lang_Object:
         return self._lang
 
-    def action_labels(self, *cmd_path) -> List[str]:
+    def action_labels(self, *cmd_path) -> list[str]:
         if self._actions is not None:
             return self._actions.labels(*cmd_path)
         else:
@@ -941,8 +931,9 @@ class Item_Menu(abc.ABC):
 
 class Case_View(abc.ABC):
 
-    @abc.abstractproperty
-    def selected_items(self) -> Set(Item):
+    @property
+    @abc.abstractmethod
+    def selected_items(self) -> set[Item]:
         pass
 
     @abc.abstractmethod
@@ -958,11 +949,8 @@ class Case_View(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def tree_row_values(self, item_id: str) -> Dict[str, Any]:
+    def tree_row_values(self, item_id: str) -> dict[str, Any]:
         pass
-
-
-import xml.etree.ElementTree as et
 
 
 class Lang_Object(abc.ABC):

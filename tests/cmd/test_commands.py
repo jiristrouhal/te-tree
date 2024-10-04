@@ -1,13 +1,12 @@
 from __future__ import annotations
-
+import dataclasses
+import unittest
 import sys
+from typing import Any, Callable
 
 sys.path.insert(1, "src")
-import dataclasses
 
-
-import unittest
-from te_tree.cmd.commands import Controller, Command
+from te_tree.cmd.commands import Controller, Command, Composed_Command, Timing
 
 
 @dataclasses.dataclass
@@ -147,12 +146,6 @@ class Test_Running_Multiple_Commands(unittest.TestCase):
         self.assertEqual(obj.i, 6)
         controller.undo()
         self.assertEqual(obj.i, 0)
-
-
-from te_tree.cmd.commands import Composed_Command, Timing
-
-
-from typing import Any, Callable
 
 
 class Composed_Increment(Composed_Command):

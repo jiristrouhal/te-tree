@@ -1,13 +1,14 @@
 from __future__ import annotations
 import sys
 import unittest
-from typing import List
 import datetime
+from typing import Any
 
 sys.path.insert(1, "src")
 
-from te_tree.core.time import Timeline, TimepointInit, Timepoint
+from te_tree.core.time import Timeline, TimepointInit
 from te_tree.core.item import ItemCreator
+from te_tree.core.time import _index_of_nearest_smaller, _index_of_nearest_smaller_or_equal
 
 
 class Test_Creating_Timeline_And_Timepoints(unittest.TestCase):
@@ -112,13 +113,9 @@ class Test_Init_Timepoint(unittest.TestCase):
         self.assertTrue(init_point.time is None)
 
 
-from typing import Any
-from te_tree.core.time import _index_of_nearest_smaller, _index_of_nearest_smaller_or_equal
-
-
 class Test_Finding_Index_Of_Nearest_Smaller_Item_Of_Ordered_List(unittest.TestCase):
 
-    def index_test(self, value: Any, thelist: List[Any], expected_index: int | None) -> None:
+    def index_test(self, value: Any, thelist: list[Any], expected_index: int | None) -> None:
         self.assertEqual(_index_of_nearest_smaller(value, thelist), expected_index)
 
     def test_lists(self) -> None:
@@ -137,7 +134,7 @@ class Test_Finding_Index_Of_Nearest_Smaller_Item_Of_Ordered_List(unittest.TestCa
 
 class Test_Finding_Index_Of_Nearest_Lesser_Or_Equal_Item_Of_Ordered_List(unittest.TestCase):
 
-    def index_test(self, value: Any, thelist: List[Any], expected_index: int | None) -> None:
+    def index_test(self, value: Any, thelist: list[Any], expected_index: int | None) -> None:
         self.assertEqual(_index_of_nearest_smaller_or_equal(value, thelist), expected_index)
 
     def test_lists(self) -> None:
@@ -167,27 +164,27 @@ from te_tree.core.time import insert_to_sorted_list
 class Test_Insert_Into_Ordered_List(unittest.TestCase):
 
     def test_insert_into_empty_list(self) -> None:
-        thelist: List[float] = []
+        thelist: list[float] = []
         insert_to_sorted_list(5, thelist)
         self.assertListEqual(thelist, [5])
 
     def test_insert_value_larger_than_list_max(self) -> None:
-        thelist: List[float] = [7, 8]
+        thelist: list[float] = [7, 8]
         insert_to_sorted_list(10, thelist)
         self.assertListEqual(thelist, [7, 8, 10])
 
     def test_insert_value_smaller_than_list_min(self) -> None:
-        thelist: List[float] = [7, 8]
+        thelist: list[float] = [7, 8]
         insert_to_sorted_list(5, thelist)
         self.assertListEqual(thelist, [5, 7, 8])
 
     def test_inserting_already_present_value_has_no_effect(self) -> None:
-        thelist: List[float] = [7, 8]
+        thelist: list[float] = [7, 8]
         insert_to_sorted_list(7, thelist)
         self.assertListEqual(thelist, [7, 8])
 
     def test_inserting_value_between_two_list_values(self) -> None:
-        thelist: List[float] = [7, 8]
+        thelist: list[float] = [7, 8]
         insert_to_sorted_list(7.9, thelist)
         self.assertListEqual(thelist, [7, 7.9, 8])
 
@@ -249,7 +246,7 @@ class Test_Timeline_Variable(unittest.TestCase):
         self.assertEqual(self.tline("y", datetime.date(2023, 10, 15)), 3)
 
     def test_binding_timeline_variable(self):
-        def add_sum_of_x(y: int, x: List[int]) -> int:
+        def add_sum_of_x(y: int, x: list[int]) -> int:
             return y + sum(x)
 
         self.tline.bind("y", add_sum_of_x, "y", "[x:integer]")
@@ -283,7 +280,7 @@ class Test_Timeline_Variable(unittest.TestCase):
         self.assertEqual(self.tline("z", datetime.date(2021, 10, 19)), 14)
 
     def test_binding_timeline_variables_to_each_other(self):
-        def add_sum_of_x(y: int, x: List[int]) -> int:  # pragma: no cover
+        def add_sum_of_x(y: int, x: list[int]) -> int:  # pragma: no cover
             return y + sum(x)
 
         self.tline.bind("y", add_sum_of_x, "y", "[x:integer]")
@@ -298,7 +295,7 @@ class Test_Timeline_Variable(unittest.TestCase):
         self.assertEqual(self.tline("z", datetime.date(2023, 10, 15)), 16)
 
     def test_binding_nonexistent_variables_raises_exception(self):
-        def add_sum_of_x(y: int, x: List[int]) -> int:  # pragma: no cover
+        def add_sum_of_x(y: int, x: list[int]) -> int:  # pragma: no cover
             return y + sum(x)
 
         self.assertRaises(
@@ -313,7 +310,7 @@ class Test_Timeline_Variable(unittest.TestCase):
     def test_item_variable_specification_has_to_consist_of_label_and_attribute_type_separated_with_colon_and_enclosed_in_square_brackets(
         self,
     ):
-        def add_sum_of_x(y: int, x: List[int]) -> int:
+        def add_sum_of_x(y: int, x: list[int]) -> int:
             return y + sum(x)  # pragma: no cover
 
         # missing input variable type
@@ -527,7 +524,7 @@ class Test_Adding_Dependency_After_Adding_An_Item(unittest.TestCase):
         root.adopt(itemA)
         pointA = timeline.points[8]
 
-        def addsum(y0: int, x: List[int]) -> int:
+        def addsum(y0: int, x: list[int]) -> int:
             return y0 + sum(x)
 
         timeline.bind("y", addsum, "y", "[x:integer]")

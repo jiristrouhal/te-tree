@@ -1,11 +1,12 @@
 from __future__ import annotations
 import sys
+import unittest
 
 sys.path.insert(1, "src")
 
-
-import unittest
+from te_tree.core.item import ItemImpl
 from te_tree.core.editor import new_editor, blank_case_template, CaseTemplate, Editor
+
 
 NBSP = "\u00A0"
 
@@ -157,9 +158,6 @@ class Test_Managing_Cases(unittest.TestCase):
         self.editor.redo()
         self.assertTrue(self.editor.contains_case(caseA_dupl))
         self.assertEqual(caseA_dupl.name, "Case (1)")
-
-
-from te_tree.core.item import ItemImpl
 
 
 class Test_Converting_Cases_To_Items_And_Back(unittest.TestCase):

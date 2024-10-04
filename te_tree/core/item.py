@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Dict, Any, Set, Callable, Optional, Literal, List
+from typing import Any, Callable, Optional, Literal
 import dataclasses
+import abc
 
 import shutil
 import time
@@ -22,27 +23,26 @@ from te_tree.core.attributes import (
 )
 from te_tree.core.attributes import Edit_AttrList_Data
 from te_tree.core.attributes import NBSP
-import abc
 
 
 def freeatt(label: str) -> Template.FreeAttribute:
     return Template.FreeAttribute(label, {}, owner="self")
 
 
-def freeatt_parent(label: str, info: Dict[str, Any]) -> Template.FreeAttribute:
+def freeatt_parent(label: str, info: dict[str, Any]) -> Template.FreeAttribute:
     return Template.FreeAttribute(label, info, owner="parent")
 
 
-def freeatt_child(label: str, info: Dict[str, Any]) -> Template.FreeAttribute:
+def freeatt_child(label: str, info: dict[str, Any]) -> Template.FreeAttribute:
     return Template.FreeAttribute(label, info, owner="child")
 
 
 @dataclasses.dataclass(frozen=True)
 class Template:
     label: str
-    attribute_info: Dict[str, Dict[str, Any]]
-    child_itypes: Tuple[str, ...] = ()
-    dependencies: Optional[List[Template.Dependency]] = None
+    attribute_info: dict[str, dict[str, Any]]
+    child_itypes: tuple[str, ...] = ()
+    dependencies: Optional[list[Template.Dependency]] = None
 
     @staticmethod
     def dependency(
@@ -57,7 +57,7 @@ class Template:
     class Dependency:
         dependent: str
         func: Callable[[Any], Any]
-        free: Tuple[Template.FreeAttribute, ...]
+        free: tuple[Template.FreeAttribute, ...]
         label: str = ""
 
     AttributeOwner = Literal["parent", "child", "self"]
@@ -65,7 +65,7 @@ class Template:
     @dataclasses.dataclass(frozen=True)
     class FreeAttribute:
         label: str
-        info: Dict[str, Any]
+        info: dict[str, Any]
         owner: Template.AttributeOwner
 
 
@@ -83,12 +83,12 @@ class ItemCreator:
     ) -> None:
         self._controller = Controller()
         self._attrfac = attribute_factory(self._controller, locale_code, currency_code)
-        self.__templates: Dict[str, Template] = {}
+        self.__templates: dict[str, Template] = {}
         self.__file_path: str = "."
         self.__ignore_duplicit_names = ignore_duplicit_names
 
     @property
-    def templates(self) -> Tuple[str, ...]:
+    def templates(self) -> tuple[str, ...]:
         return tuple(self.__templates.keys())
 
     def get_template(self, label: str) -> Template:
@@ -97,9 +97,9 @@ class ItemCreator:
     def template(
         self,
         label: str,
-        attributes: Dict[str, Dict[str, Any]] | None = None,
-        child_itypes: Tuple[str, ...] = (),
-        dependencies: Optional[List[Template.Dependency]] = None,
+        attributes: dict[str, dict[str, Any]] | None = None,
+        child_itypes: tuple[str, ...] = (),
+        dependencies: Optional[list[Template.Dependency]] = None,
     ) -> Template:
 
         if attributes is None:
@@ -129,16 +129,16 @@ class ItemCreator:
         for t in templates:
             if t.label in self.__templates:
                 raise ItemCreator.TemplateAlreadyExists(t.label)
-            self.__check_child_template_presence(t.child_itypes, *new_labels)
-            self.__check_attribute_info(t.attribute_info)
+            self._check_child_template_presence(t.child_itypes, *new_labels)
+            self._check_attribute_info(t.attribute_info)
         self.__templates.update({t.label: t for t in templates})
 
     def add_template(
         self,
         label: str,
-        attributes: Dict[str, Dict[str, Any]] | None = None,
-        child_itypes: Tuple[str, ...] = (),
-        dependencies: Optional[List[Template.Dependency]] = None,
+        attributes: dict[str, dict[str, Any]] | None = None,
+        child_itypes: tuple[str, ...] = (),
+        dependencies: Optional[list[Template.Dependency]] = None,
     ) -> None:
 
         if attributes is None:
@@ -149,38 +149,38 @@ class ItemCreator:
     import os
 
     def load(self, dirpath: str, name: str, ftype: FileType) -> Item:
-        filepath = self.__create_and_check_filepath(dirpath, name, ftype)
+        filepath = self._create_and_check_filepath(dirpath, name, ftype)
         root_elem = self.et.parse(filepath).getroot()
-        loaded_item = self.__build_item_from_xml(root_elem)
+        loaded_item = self._build_item_from_xml(root_elem)
         return loaded_item
 
-    def __build_item_from_xml(self, xml_elem: et.Element) -> Tuple[Item, List[Command]]:
-        self.__check_template_is_available(xml_elem.tag)
+    def _build_item_from_xml(self, xml_elem: et.Element) -> Item:
+        self._check_template_is_available(xml_elem.tag)
         item = self.from_template(xml_elem.tag)
         item.rename(xml_elem.attrib["name"])
-        self.__read_attribute_values_from_xml_elem(item, xml_elem)
+        self._read_attribute_values_from_xml_elem(item, xml_elem)
 
         @self._controller.single_cmd()
         def build_and_adopt():
-            child = self.__build_item_from_xml(sub_elem)
+            child = self._build_item_from_xml(sub_elem)
             item.adopt(child)
 
         for sub_elem in xml_elem:
             build_and_adopt()
         return item
 
-    def __create_and_check_filepath(self, dirpath: str, name: str, ftype: FileType) -> str:
+    def _create_and_check_filepath(self, dirpath: str, name: str, ftype: FileType) -> str:
         filepath = dirpath + "/" + name + "." + ftype
         if self.os.path.isfile(filepath):
             return filepath
         else:
             raise ItemCreator.FileDoesNotExist(filepath)
 
-    def __check_template_is_available(self, label: str) -> None:
+    def _check_template_is_available(self, label: str) -> None:
         if label not in self.__templates:
             raise ItemCreator.UnknownTemplate(label)
 
-    def __read_attribute_values_from_xml_elem(
+    def _read_attribute_values_from_xml_elem(
         self, loaded_item: Item, xml_elem: et.Element
     ) -> None:
         for attr_name in loaded_item.attributes:
@@ -190,7 +190,7 @@ class ItemCreator:
                 )
 
     def save(self, item: Item, filetype: FileType, backup_folder_name: str = "") -> None:
-        xml_tree = self.et.ElementTree(self.__create_xml_items_hierarchy(item))
+        xml_tree = self.et.ElementTree(self._create_xml_items_hierarchy(item))
         self.et.indent(xml_tree, space="\t")
         filename = item.name + "." + filetype
         filepath = self.os.path.join(self.file_path, filename)
@@ -202,7 +202,7 @@ class ItemCreator:
                 self.os.makedirs(backup_folder_path)
             shutil.copyfile(
                 filepath,
-                self.os.path.join(backup_folder_path, self.__backup_file_name(item, filetype)),
+                self.os.path.join(backup_folder_path, self._backup_file_name(item, filetype)),
             )
         xml_tree.write(filepath, encoding="UTF-8")
 
@@ -215,7 +215,7 @@ class ItemCreator:
         strtime = f"{t.tm_year:04d}-{t.tm_mon:02d}-{t.tm_mday:2d}_{t.tm_hour:02d}-{t.tm_min:02d}-{t.tm_sec:02d}"
         return strtime
 
-    def __backup_file_name(self, item: Item, filetype: FileType) -> str:
+    def _backup_file_name(self, item: Item, filetype: FileType) -> str:
         return item.name + " " + self.get_strtime() + "." + filetype
 
     def does_file_exist(self, item: Item, filetype: FileType) -> bool:
@@ -227,22 +227,22 @@ class ItemCreator:
             raise ItemCreator.NonexistentDirectory(path)
         self.__file_path = path
 
-    def __check_template_exists_for_item(self, item: Item) -> None:
+    def _check_template_exists_for_item(self, item: Item) -> None:
         if item.itype.strip() == "" or item.itype not in self.__templates:
             raise ItemCreator.NoTemplateIsAssigned(item.name)
 
-    def __create_xml_items_hierarchy(self, item: Item) -> et.Element:
-        xml_elem = self.__create_single_xml_item(item)
+    def _create_xml_items_hierarchy(self, item: Item) -> et.Element:
+        xml_elem = self._create_single_xml_item(item)
         for child in set.union(item.children, item.formal_children):
-            xml_elem.append(self.__create_xml_items_hierarchy(child))
+            xml_elem.append(self._create_xml_items_hierarchy(child))
         return xml_elem
 
-    def __create_single_xml_item(self, item: Item) -> et.Element:
-        self.__check_template_exists_for_item(item)
-        return self.et.Element(item.itype, self.__get_printed_attributes(item))
+    def _create_single_xml_item(self, item: Item) -> et.Element:
+        self._check_template_exists_for_item(item)
+        return self.et.Element(item.itype, self._get_printed_attributes(item))
 
-    def __get_printed_attributes(self, item: Item) -> Dict[str, str]:
-        printed_attribs: Dict[str, str] = {"name": item.name}
+    def _get_printed_attributes(self, item: Item) -> dict[str, str]:
+        printed_attribs: dict[str, str] = {"name": item.name}
         for label, attr in item.attributes.items():
             printed_attribs[label] = attr.print().replace(NBSP, " ")
         return printed_attribs
@@ -251,7 +251,7 @@ class ItemCreator:
         if label not in self.__templates:
             raise ItemCreator.UndefinedTemplate(label)
         template = self.__templates[label]
-        attributes = self.__get_attrs(template.attribute_info)
+        attributes = self._get_attrs(template.attribute_info)
         if name.strip() == "":
             name = template.label
         item = ItemImpl(
@@ -270,12 +270,12 @@ class ItemCreator:
     def new(
         self,
         name: str,
-        attr_info: Dict[str, AttributeType | Dict[str, Any]] = {},
-        child_itypes: Optional[Tuple[str, ...]] = None,
+        attr_info: dict[str, AttributeType | dict[str, Any]] = {},
+        child_itypes: Optional[tuple[str, ...]] = None,
     ) -> Item:
         return ItemImpl(
             name,
-            self.__get_attrs(attr_info),
+            self._get_attrs(attr_info),
             self,
             ignore_duplicit_names=self.__ignore_duplicit_names,
             child_itypes=child_itypes,
@@ -287,20 +287,20 @@ class ItemCreator:
     def redo(self):
         self._controller.redo()
 
-    def __check_attribute_info(self, attribute_info: Dict[str, Dict[str, Any]]) -> None:
+    def _check_attribute_info(self, attribute_info: dict[str, dict[str, Any]]) -> None:
         for info in attribute_info.values():
             self.attr._check(info)
 
-    def __check_child_template_presence(
-        self, child_itypes: Tuple[str, ...], *templates_being_defined: str
+    def _check_child_template_presence(
+        self, child_itypes: tuple[str, ...], *templates_being_defined: str
     ) -> None:
         for child_itype in child_itypes:
             if not (child_itype in self.__templates or child_itype in templates_being_defined):
                 raise ItemCreator.UndefinedTemplate(child_itype)
 
-    def __get_attrs(
-        self, attribute_info: Dict[str, AttributeType | Dict[str, Any]]
-    ) -> Dict[str, Attribute]:
+    def _get_attrs(
+        self, attribute_info: dict[str, AttributeType | dict[str, Any]]
+    ) -> dict[str, Attribute]:
         attributes = {}
         for label, info in attribute_info.items():
             if isinstance(info, str):
@@ -412,7 +412,7 @@ class Adopt_Composed(Composed_Command):
     def cmd_type():
         return Adopt
 
-    def __call__(self, data: Parentage_Data) -> Tuple[Command, ...]:
+    def __call__(self, data: Parentage_Data) -> tuple[Command, ...]:
         return super().__call__(data)
 
     def add(self, owner_id: str, func: Callable[[Parentage_Data], Command], timing: Timing) -> None:
@@ -452,7 +452,7 @@ class Leave_Composed(Composed_Command):
     def cmd_type():
         return Leave
 
-    def __call__(self, data: Parentage_Data) -> Tuple[Command, ...]:
+    def __call__(self, data: Parentage_Data) -> tuple[Command, ...]:
         return super().__call__(data)
 
     def add(
@@ -480,7 +480,7 @@ from te_tree.core.attributes import Dependency
 class Parent_Attribute:
 
     def __init__(self, attribute: AbstractAttribute, stub: AbstractAttribute) -> None:
-        self.__dependencies: List[Dependency] = list()
+        self.__dependencies: list[Dependency] = list()
         self.__attribute = attribute
         self.__stub = stub
 
@@ -512,24 +512,24 @@ class Item(abc.ABC):  # pragma: no cover
     @dataclasses.dataclass(frozen=True)
     class BindingInfo:
         func: Callable[[Any], Any]
-        input_labels: Tuple[Template.FreeAttribute, ...]
+        input_labels: tuple[Template.FreeAttribute, ...]
         label: str = ""
 
     def __init__(
         self,
         name: str,
-        attributes: Dict[str, Attribute],
+        attributes: dict[str, Attribute],
         manager: ItemCreator,
         ignore_duplicit_names: bool = False,
     ) -> None:
         self._manager = manager
         self.__id = str(id(self))
-        self._bindings: Dict[str, Item.BindingInfo] = dict()
-        self._child_attr_lists: Dict[str, Attribute_List] = dict()
-        self._parent_attributes: Dict[str, Parent_Attribute] = dict()
+        self._bindings: dict[str, Item.BindingInfo] = dict()
+        self._child_attr_lists: dict[str, Attribute_List] = dict()
+        self._parent_attributes: dict[str, Parent_Attribute] = dict()
 
     @abc.abstractproperty
-    def attributes(self) -> Dict[str, Attribute]:
+    def attributes(self) -> dict[str, Attribute]:
         pass
 
     @abc.abstractproperty
@@ -545,7 +545,7 @@ class Item(abc.ABC):  # pragma: no cover
         pass
 
     @abc.abstractproperty
-    def children(self) -> Set[Item]:
+    def children(self) -> set[Item]:
         pass
 
     @property
@@ -561,19 +561,19 @@ class Item(abc.ABC):  # pragma: no cover
         return ""
 
     @abc.abstractproperty
-    def child_itypes(self) -> Optional[Tuple[str, ...]]:
+    def child_itypes(self) -> Optional[tuple[str, ...]]:
         pass
 
     @abc.abstractproperty
-    def command(self) -> Dict[Command_Type, Composed_Command]:
+    def command(self) -> dict[Command_Type, Composed_Command]:
         pass
 
     @abc.abstractproperty
-    def formal_children(self) -> Set[Item]:
+    def formal_children(self) -> set[Item]:
         pass
 
     @abc.abstractproperty
-    def last_action(self) -> Tuple[str, str, str]:
+    def last_action(self) -> tuple[str, str, str]:
         pass
 
     @abc.abstractmethod
@@ -694,7 +694,7 @@ class Item(abc.ABC):  # pragma: no cover
         pass
 
     @abc.abstractmethod
-    def multiset(self, vals_to_labels: Dict[str, Any]) -> None:
+    def multiset(self, vals_to_labels: dict[str, Any]) -> None:
         pass
 
     @abc.abstractmethod
@@ -788,11 +788,11 @@ class ItemImpl(Item):
 
     class __ItemNull(Item):
         def __init__(self, *args, **kwargs) -> None:
-            self.__children: Set[Item] = set()
-            self._child_attr_lists: Dict = dict()
+            self.__children: set[Item] = set()
+            self._child_attr_lists: dict = dict()
 
         @property
-        def attributes(self) -> Dict[str, Attribute]:
+        def attributes(self) -> dict[str, Attribute]:
             return {}
 
         @property
@@ -808,7 +808,7 @@ class ItemImpl(Item):
             return self
 
         @property
-        def children(self) -> Set[Item]:
+        def children(self) -> set[Item]:
             raise self.CannotAccessChildrenOfNull
 
         @property
@@ -816,19 +816,19 @@ class ItemImpl(Item):
             return ""  # pragma: no cover
 
         @property
-        def child_itypes(self) -> Optional[Tuple[str, ...]]:
+        def child_itypes(self) -> Optional[tuple[str, ...]]:
             return None  # pragma: no cover
 
         @property
-        def command(self) -> Dict[Command_Type, Composed_Command]:
+        def command(self) -> dict[Command_Type, Composed_Command]:
             return {}  # pragma: no cover
 
         @property
-        def formal_children(self) -> Set[Item]:
+        def formal_children(self) -> set[Item]:
             return set()
 
         @property
-        def last_action(self) -> Tuple[str, str, str]:
+        def last_action(self) -> tuple[str, str, str]:
             return ("", "", "")
 
         def adopt_formally(self, child: Item) -> None:
@@ -910,7 +910,7 @@ class ItemImpl(Item):
         def set(self, attr_name: str, value: Any) -> None:
             raise Item.NonexistentAttribute  # pragma: no cover
 
-        def multiset(self, vals_to_labels: Dict[str, Any]) -> None:
+        def multiset(self, vals_to_labels: dict[str, Any]) -> None:
             raise Item.NonexistentAttribute  # pragma: no cover
 
         def __call__(self, attr_name: str) -> Any:
@@ -969,42 +969,42 @@ class ItemImpl(Item):
     def __init__(
         self,
         name: str,
-        attributes: Dict[str, Attribute],
+        attributes: dict[str, Attribute],
         manager: ItemCreator,
         itype: str = "",
-        child_itypes: Optional[Tuple[str, ...]] = None,
+        child_itypes: Optional[tuple[str, ...]] = None,
         ignore_duplicit_names: bool = False,
     ) -> None:
 
         self.__ignore_duplicit_names: bool = ignore_duplicit_names
         super().__init__(name, attributes, manager)
-        self.__attributes: Dict[str, Attribute] = {
+        self.__attributes: dict[str, Attribute] = {
             "name": manager._attrfac.new_from_dict(**manager.attr.text(init_value=itype))
         }
         if "name" in attributes:
             attributes.pop("name")
         self.__attributes.update(attributes)
-        self.__children: Set[Item] = set()
-        self.__formal_children: Set[Item] = set()
+        self.__children: set[Item] = set()
+        self.__formal_children: set[Item] = set()
         self.__parent: Item = self.NULL
-        self._bindings: Dict[str, Item.BindingInfo] = dict()
-        self.__command: Dict[Command_Type, Composed_Command] = {
+        self._bindings: dict[str, Item.BindingInfo] = dict()
+        self.__command: dict[Command_Type, Composed_Command] = {
             "adopt": Adopt_Composed(),
             "leave": Leave_Composed(),
             "rename": Rename_Composed(),
         }
         self.__itype = itype
         self.__child_itypes = child_itypes
-        self.__actions: Dict[Command_Type, Dict[str, Callable[[Item], None]]] = {
+        self.__actions: dict[Command_Type, dict[str, Callable[[Item], None]]] = {
             "rename": dict(),
             "adopt": dict(),
             "leave": dict(),
         }
-        self.__last_action: Tuple[str, str, str] = ("", "", "")
+        self.__last_action: tuple[str, str, str] = ("", "", "")
         self._rename(name)
 
     @property
-    def attributes(self) -> Dict[str, Attribute]:
+    def attributes(self) -> dict[str, Attribute]:
         attributes = self.__attributes.copy()
         attributes.pop("name")
         return attributes
@@ -1022,7 +1022,7 @@ class ItemImpl(Item):
         return self if self.__parent is self.NULL else self.__parent.root
 
     @property
-    def children(self) -> Set[Item]:
+    def children(self) -> set[Item]:
         return self.__children.copy()
 
     @property
@@ -1030,15 +1030,15 @@ class ItemImpl(Item):
         return self.__itype
 
     @property
-    def child_itypes(self) -> Optional[Tuple[str, ...]]:
+    def child_itypes(self) -> Optional[tuple[str, ...]]:
         return self.__child_itypes
 
     @property
-    def command(self) -> Dict[Command_Type, Composed_Command]:
+    def command(self) -> dict[Command_Type, Composed_Command]:
         return self.__command
 
     @property
-    def formal_children(self) -> Set[Item]:
+    def formal_children(self) -> set[Item]:
         return self.__formal_children.copy()
 
     @property
@@ -1046,11 +1046,11 @@ class ItemImpl(Item):
         return self.itype + " " + super().id
 
     @property
-    def child_names(self) -> List[str]:
+    def child_names(self) -> list[str]:
         return [c.name for c in self.__children]
 
     @property
-    def last_action(self) -> Tuple[str, str, str]:
+    def last_action(self) -> tuple[str, str, str]:
         return self.__last_action
 
     def add_action(
@@ -1105,8 +1105,8 @@ class ItemImpl(Item):
             return
         output = self.attribute(output_name)
         input_info = list(input_info)
-        self.__create_attr_info_from_attr_type(input_info)
-        inputs = self.__collect_input_attributes(input_info)
+        self._create_attr_info_from_attr_type(input_info)
+        inputs = self._collect_input_attributes(input_info)
         dependency = output.add_dependency(func, *inputs, label=binding_label)
         for info in input_info:
             label = info.label
@@ -1114,32 +1114,32 @@ class ItemImpl(Item):
                 self._parent_attributes[label].watch_dependency(dependency)
         self._bindings[output_name] = ItemImpl.BindingInfo(func, input_info, label=binding_label)
 
-    def __create_attr_info_from_attr_type(
-        self, input_info: List[str | Template.FreeAttribute]
+    def _create_attr_info_from_attr_type(
+        self, input_info: list[str | Template.FreeAttribute]
     ) -> None:
         for k in range(len(input_info)):
             if isinstance(input_info[k], str):
                 input_info[k] = freeatt(input_info[k])
 
-    def __collect_input_attributes(
-        self, input_info: Tuple[Template.FreeAttribute, ...]
-    ) -> List[AbstractAttribute]:
-        inputs: List[AbstractAttribute] = list()
+    def _collect_input_attributes(
+        self, input_info: tuple[Template.FreeAttribute, ...]
+    ) -> list[AbstractAttribute]:
+        inputs: list[AbstractAttribute] = list()
         for info in input_info:
             if info.owner == "child":
-                inputs.append(self.__get_child_attr_list(info))
+                inputs.append(self._get_child_attr_list(info))
             elif info.owner == "parent":
-                inputs.append(self.__get_parent_attribute(info))
+                inputs.append(self._get_parent_attribute(info))
             else:
                 inputs.append(self.attribute(info.label))
         return inputs
 
-    def __get_child_attr_list(self, info: Template.FreeAttribute) -> Attribute_List:
+    def _get_child_attr_list(self, info: Template.FreeAttribute) -> Attribute_List:
         if info.label not in self._child_attr_lists:
             self._create_child_attr_list(info.info["atype"], info.label)
         return self._child_attr_lists[info.label]
 
-    def __get_parent_attribute(self, info: Template.FreeAttribute) -> AbstractAttribute:
+    def _get_parent_attribute(self, info: Template.FreeAttribute) -> AbstractAttribute:
         if not info.label in self._parent_attributes:
             stub = self._manager._attrfac.new_from_dict(**info.info)
             if not self.parent.is_null():
@@ -1188,7 +1188,7 @@ class ItemImpl(Item):
             else:
                 attr.set(attr.stub)
 
-    def __check_attr_type_matches_list_type(
+    def _check_attr_type_matches_list_type(
         self, alist: Attribute_List, attribute: AbstractAttribute
     ) -> None:
 
@@ -1202,13 +1202,13 @@ class ItemImpl(Item):
 
         for child in self.__children:
             if child_attr_label in child.attributes:
-                self.__check_attr_type_matches_list_type(alist, child.attribute(child_attr_label))
+                self._check_attr_type_matches_list_type(alist, child.attribute(child_attr_label))
                 alist.append(child.attribute(child_attr_label))
 
         def adopt_cmd(data: Parentage_Data) -> Command:
             if not data.child.has_attribute(child_attr_label):
                 return Empty_Command()
-            self.__check_attr_type_matches_list_type(alist, data.child.attribute(child_attr_label))
+            self._check_attr_type_matches_list_type(alist, data.child.attribute(child_attr_label))
             cmd_data = Edit_AttrList_Data(alist, data.child.attribute(child_attr_label))
             return Append_To_Attribute_List(cmd_data)
 
@@ -1251,8 +1251,8 @@ class ItemImpl(Item):
             self.rename(value)
         self.attribute(attrib_label).set(value)
 
-    def multiset(self, attr_to_value_dict: Dict[str, Any]) -> None:
-        attrs: Dict[Attribute, Any] = dict()
+    def multiset(self, attr_to_value_dict: dict[str, Any]) -> None:
+        attrs: dict[Attribute, Any] = dict()
         for label in attr_to_value_dict:
             if label in self.__attributes:
                 if label == "name":
@@ -1322,10 +1322,10 @@ class ItemImpl(Item):
         if child in self.__formal_children:
             self.__formal_children.remove(child)
         child._accept_parent(self)
-        self.__make_child_to_rename_if_its_name_already_taken(child)
+        self._make_child_to_rename_if_its_name_already_taken(child)
         if self is child.parent:
             self.__children.add(child)
-        self.__run_actions_after_command("adopt", child)
+        self._run_actions_after_command("adopt", child)
 
     def _can_be_parent_of_item_type(self, item: Item) -> bool:
         return (self.__child_itypes is not None) and (item.itype in self.__child_itypes)
@@ -1345,7 +1345,7 @@ class ItemImpl(Item):
     def _duplicate_items(self) -> ItemImpl:
         dupl = ItemImpl(
             self.name,
-            attributes=self.__attributes_copy(),
+            attributes=self._attributes_copy(),
             manager=self._manager,
             itype=self.itype,
             child_itypes=self.__child_itypes,
@@ -1373,7 +1373,7 @@ class ItemImpl(Item):
         if child in self.__children:
             self.__children.remove(child)
             child._leave_parent(self)
-            self.__run_actions_after_command("leave", child)
+            self._run_actions_after_command("leave", child)
 
     def _leave_parent(self, parent: Item) -> None:
         if parent is self.parent:
@@ -1384,25 +1384,25 @@ class ItemImpl(Item):
 
     def _rename(self, name: str) -> None:
         name = strip_and_join_spaces(name)
-        self.__raise_if_name_is_blank(name)
+        self._raise_if_name_is_blank(name)
         if not self.parent.is_null():
             assert isinstance(self.parent, ItemImpl)
-            name = self.parent.__adjust_name_if_taken(self, name)
+            name = self.parent._adjust_name_if_taken(self, name)
         self.attribute("name")._hard_set(name)
-        self.__run_actions_after_command("rename", self)
+        self._run_actions_after_command("rename", self)
 
-    def __run_actions_after_command(self, after_command: Command_Type, item: Item) -> None:
+    def _run_actions_after_command(self, after_command: Command_Type, item: Item) -> None:
         for action in self.__actions[after_command].values():
             action(item)
             self.__last_action = (self.name, after_command, item.name)
 
-    def __attributes_copy(self) -> Dict[str, Attribute]:
-        attr_copy: Dict[str, Attribute] = {}
+    def _attributes_copy(self) -> dict[str, Attribute]:
+        attr_copy: dict[str, Attribute] = {}
         for label, attr in self.attributes.items():
             attr_copy[label] = attr.copy()
         return attr_copy
 
-    def __adjust_name_if_taken(self, item: Item, cname: str) -> str:
+    def _adjust_name_if_taken(self, item: Item, cname: str) -> str:
         if self.__ignore_duplicit_names:
             return cname
         names = [c.name for c in self.__children if not c == item]
@@ -1411,10 +1411,10 @@ class ItemImpl(Item):
             cname = adjust_taken_name(cname)
         return cname
 
-    def __make_child_to_rename_if_its_name_already_taken(self, child: Item):
-        child._rename(self.__adjust_name_if_taken(child, child.name))
+    def _make_child_to_rename_if_its_name_already_taken(self, child: Item):
+        child._rename(self._adjust_name_if_taken(child, child.name))
 
-    def __raise_if_name_is_blank(self, name: str) -> None:
+    def _raise_if_name_is_blank(self, name: str) -> None:
         if name == "":
             raise self.BlankName
 

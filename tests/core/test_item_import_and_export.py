@@ -4,6 +4,7 @@ import os
 import sys
 
 sys.path.insert(1, "src")
+
 from te_tree.core.item import ItemCreator
 
 

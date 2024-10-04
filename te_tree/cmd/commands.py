@@ -1,7 +1,9 @@
 from __future__ import annotations
 import abc
-from typing import List, Any, Callable, Literal, Dict, Type
+from typing import Any, Callable, Literal, Type
 
+
+Timing = Literal["pre", "post"]
 
 class Command(abc.ABC):  # pragma: no cover
     def __init__(self, data: Any) -> None:
@@ -50,10 +52,10 @@ class Empty_Command(Command):
 class Controller:
 
     def __init__(self) -> None:
-        self.__undo_stack: List[List[Command]] = list()
-        self.__redo_stack: List[List[Command]] = list()
-        self.__run_stack: List[Command] = list()
-        self.__history: List[str] = list()
+        self.__undo_stack: list[list[Command]] = list()
+        self.__redo_stack: list[list[Command]] = list()
+        self.__run_stack: list[Command] = list()
+        self.__history: list[str] = list()
         self.__last_symbol: str = "- "
         self.__waiting: int = 0
 
@@ -73,7 +75,7 @@ class Controller:
     def history(self) -> str:
         return 2 * "\n" + "\n".join(self.__history) + "\n"
 
-    def __switch_last_symbol(self) -> None:
+    def _switch_last_symbol(self) -> None:
         if self.__last_symbol == "x ":
             self.__last_symbol = "- "
         else:
@@ -85,10 +87,10 @@ class Controller:
     def run(self, *cmds: Command) -> None:
         self.__run_stack.extend(list(cmds))
         if self.__waiting == 0:
-            self.__actually_run()
+            self._actually_run()
 
-    def __actually_run(self) -> None:
-        cmd_list: List[Command] = []
+    def _actually_run(self) -> None:
+        cmd_list: list[Command] = []
         for item in self.__run_stack:
             cmd_list.append(item)
         self.__run_stack.clear()
@@ -100,8 +102,8 @@ class Controller:
 
         for cmd in cmd_list:
             if cmd.message.strip() != "":
-                self.__write_to_history(f"{self.__last_symbol} {cmd.message}")
-        self.__switch_last_symbol()
+                self._write_to_history(f"{self.__last_symbol} {cmd.message}")
+        self._switch_last_symbol()
 
     def undo(self) -> None:
         if not self.__undo_stack:
@@ -110,9 +112,9 @@ class Controller:
         for cmd in reversed(batch):
             cmd.undo()
             if cmd.message.strip() != "":
-                self.__write_to_history(f"{self.__last_symbol}Undo: {cmd.message}")
+                self._write_to_history(f"{self.__last_symbol}Undo: {cmd.message}")
         self.__redo_stack.append(batch)
-        self.__switch_last_symbol()
+        self._switch_last_symbol()
 
     def redo(self) -> None:
         if not self.__redo_stack:
@@ -121,11 +123,11 @@ class Controller:
         for cmd in batch:
             cmd.redo()
             if cmd.message.strip() != "":
-                self.__write_to_history(f"{self.__last_symbol}Redo: {cmd.message}")
+                self._write_to_history(f"{self.__last_symbol}Redo: {cmd.message}")
         self.__undo_stack.append(batch)
-        self.__switch_last_symbol()
+        self._switch_last_symbol()
 
-    def __write_to_history(self, record: str) -> None:
+    def _write_to_history(self, record: str) -> None:
         if record.strip() == "":
             return
         # print(record)
@@ -144,7 +146,7 @@ class Controller:
         if self.__waiting > 0:
             self.__waiting -= 1
         if self.__waiting == 0:
-            self.__actually_run()
+            self._actually_run()
 
     def _wait(self) -> None:
         self.__waiting += 1
@@ -174,10 +176,6 @@ class Controller:
         return outer_wrapper
 
 
-Timing = Literal["pre", "post"]
-from typing import Tuple
-
-
 class Composed_Command(abc.ABC):
 
     @abc.abstractstaticmethod
@@ -185,15 +183,15 @@ class Composed_Command(abc.ABC):
         return Command  # pragma: no cover
 
     def __init__(self) -> None:
-        self.composed_pre: Dict[str, Tuple[Callable[[Any], Any], Composed_Command]] = dict()
-        self.pre: Dict[str, Callable[[Any], Command]] = dict()
-        self.post: Dict[str, Callable[[Any], Command]] = dict()
-        self.composed_post: Dict[str, Tuple[Callable[[Any], Any], Composed_Command]] = dict()
+        self.composed_pre: dict[str, tuple[Callable[[Any], Any], Composed_Command]] = dict()
+        self.pre: dict[str, Callable[[Any], Command]] = dict()
+        self.post: dict[str, Callable[[Any], Command]] = dict()
+        self.composed_post: dict[str, tuple[Callable[[Any], Any], Composed_Command]] = dict()
 
     @abc.abstractmethod
-    def __call__(self, data: Any) -> Tuple[Command, ...]:
+    def __call__(self, data: Any) -> tuple[Command, ...]:
 
-        pre: List[Command] = list()
+        pre: list[Command] = list()
         for converter, composed_cmd in self.composed_pre.values():
             converted_data = converter(data)
             pre.extend(composed_cmd(converted_data))
@@ -203,7 +201,7 @@ class Composed_Command(abc.ABC):
             pre.append(cmd)
 
         main = self.cmd_type()(data)
-        post: List[Command] = []
+        post: list[Command] = []
         for func in self.post.values():
             cmd = func(data)
             post.append(cmd)

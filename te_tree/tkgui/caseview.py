@@ -1,12 +1,10 @@
 import tkinter.ttk as ttk
 import tkinter as tk
 from functools import partial
-
-from typing import List, Tuple, Callable, Dict, Any, Set
-from typing import Optional
-from PIL import Image, ImageTk  # type: ignore
+from typing import Callable, Any, Optional
 import os
 
+from PIL import Image, ImageTk  # type: ignore
 
 from te_tree.core.editor import Case_View, Lang_Object, Item
 
@@ -17,9 +15,9 @@ class Case_View_Tk(Case_View):
         self,
         window: tk.Tk | tk.Frame,
         root_item: Item,
-        attrs_for_display: Dict[str, Tuple[str, ...]] | None = None,
+        attrs_for_display: dict[str, tuple[str, ...]] | None = None,
         lang: Lang_Object = Lang_Object.get_lang_object(),
-        icons: Dict[str, str] | None = None,
+        icons: dict[str, str] | None = None,
     ) -> None:
 
         if attrs_for_display is None:
@@ -57,10 +55,10 @@ class Case_View_Tk(Case_View):
         self._tree.bind("<Escape>", lambda e: self._selection_clear())
         self._tree.bind("<Down> <Up>", lambda e: self._reselect_last())
 
-        self._item_dict: Dict[str, Item] = {"": root_item}
+        self._item_dict: dict[str, Item] = {"": root_item}
         self._set_up_headings()
         self._reversed_sort: bool = False
-        self._on_selection_change: List[Callable[[], None]] = list()
+        self._on_selection_change: list[Callable[[], None]] = list()
 
         self._last_selection: str = ""
 
@@ -73,7 +71,7 @@ class Case_View_Tk(Case_View):
         return self._tree
 
     @property
-    def selected_items(self) -> Set[Item]:
+    def selected_items(self) -> set[Item]:
         return {self._item_dict[item_id] for item_id in self._tree.selection()}
 
     def bind(self, sequence: str, action: Callable[[tk.Event], None]) -> None:
@@ -112,20 +110,20 @@ class Case_View_Tk(Case_View):
         else:
             self._last_selection = ""
 
-    def tree_row_values(self, item_id: str) -> Dict[str, Any]:
-        vals: [str, Any] = dict()
+    def tree_row_values(self, item_id: str) -> dict[str, Any]:
+        vals: dict[str, Any] = dict()
         for label, value in zip(self._tree["columns"], self._tree.item(item_id)["values"]):
             vals[label] = value
         return vals
 
-    def _collect_and_set_values(self, item: Item) -> List[str]:
-        values: List[str] = list()
+    def _collect_and_set_values(self, item: Item) -> list[str]:
+        values: list[str] = list()
         for label_group in self._attrs_for_display:
             values.append("")
             for label in self._attrs_for_display[label_group]:
                 if item.has_attribute(label):
                     attr = item.attribute(label)
-                    print_args: Dict[str, Any] = dict()
+                    print_args: dict[str, Any] = dict()
                     if attr.type == "real" or attr.type == "quantity":
                         print_args["precision"] = self._precision
                         print_args["trailing_zeros"] = self._trailing_zeros
@@ -251,8 +249,8 @@ class Case_View_Tk(Case_View):
             ]
             child_data.sort(key=lambda x: x[1], reverse=self._reversed_sort)
         else:
-            child_data: List[str, Any] = list()
-            empty_child_data: List[str, Any] = list()
+            child_data: list[str, Any] = list()
+            empty_child_data: list[str, Any] = list()
             for item_id in self._tree.get_children(parent_iid):
                 item = self._item_dict[item_id]
                 attr_label = self._pick_attr_label_from_attrs_assigned_to_caseview_column(
@@ -268,6 +266,7 @@ class Case_View_Tk(Case_View):
 
         for index, (c, _) in enumerate(child_data):
             self._tree.move(c, parent_iid, index)
+
 
     class Undefined_Column_Label(Exception):
         pass

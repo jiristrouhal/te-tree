@@ -1,11 +1,10 @@
 from __future__ import annotations
 import sys
+import unittest
+import tkinter as tk
 
 sys.path.insert(1, "src")
 
-
-import unittest
-import tkinter as tk
 from te_tree.tkgui.caseview import Case_View_Tk
 from te_tree.core.item import ItemCreator
 

@@ -6,8 +6,7 @@ import tkcalendar as tkc
 import abc
 from typing import Any
 
-from te_tree.core.attributes import Choice_Attribute
-
+from te_tree.core.attributes import Choice_Attribute, Number_Attribute
 
 class Attribute_Entry(abc.ABC):
 
@@ -132,9 +131,6 @@ class Date_Entry(Attribute_Entry):
         self.__date_entry.set_date(value)
 
 
-from te_tree.core.attributes import Number_Attribute
-
-
 class Number_Entry(Attribute_Entry):
 
     @property
@@ -242,7 +238,7 @@ class Quantity_Entry(Number_Entry):
             return unit in scaled_units
 
         unit_vcmd = (self.__frame.register(validate_unit), "%P")
-        self.__prev_scaled_unit = self.attr.prefix + self.attr.unit
+        self._prev_scaled_unit = self.attr.prefix + self.attr.unit
         self.__unit_var = tk.StringVar(self.__frame)
         self.__unit = ttk.Combobox(
             self.__frame,
@@ -257,16 +253,16 @@ class Quantity_Entry(Number_Entry):
         if len(scaled_units) == 1:
             self.__unit.configure(state="disabled")
         self.__unit.grid(row=0, column=1)
-        self.__unit_var.trace_add("write", self.__update_displayed_value_on_unit_update)
+        self.__unit_var.trace_add("write", self._update_displayed_value_on_unit_update)
 
         vcmd = (self.__frame.register(self._text_is_valid_quantity_value), "%P")
         self._value = tk.Entry(self.__frame, validate="key", validatecommand=vcmd)
         self._value.grid(row=0, column=0)
-        self.__update_value(self.attr.print(include_unit=False))
+        self._update_value(self.attr.print(include_unit=False))
         if self.attr.dependent:
             self._value.configure(state="readonly", relief="flat")
 
-    def __update_value(self, new_value: Any) -> None:
+    def _update_value(self, new_value: Any) -> None:
         str_value = str(new_value)
         assert isinstance(self.attr, Quantity)
         if self.attr.comma_as_dec_separator:
@@ -274,14 +270,14 @@ class Quantity_Entry(Number_Entry):
         self._value.delete(0, tk.END)
         self._value.insert(0, str_value)
 
-    def __update_displayed_value_on_unit_update(self, *args) -> None:
+    def _update_displayed_value_on_unit_update(self, *args) -> None:
         assert isinstance(self.attr, Quantity)
         if self.value in ("", "+", "-"):
             source_value = self.attr.value
             source_unit = self.attr.default_scaled_unit
         else:
             source_value = Decimal(self.value.replace(",", "."))
-            source_unit = self.__prev_scaled_unit
+            source_unit = self._prev_scaled_unit
         target_unit = self.__unit.get()
         target_value = str(self.attr.convert(source_value, source_unit, target_unit))
         if "." in target_value:
@@ -289,11 +285,11 @@ class Quantity_Entry(Number_Entry):
 
         if self.attr.dependent:
             self._value.configure(state="normal", relief="flat")
-        self.__update_value(target_value)
+        self._update_value(target_value)
         if self.attr.dependent:
             self._value.configure(state="readonly", relief="flat")
 
-        self.__prev_scaled_unit = self.__unit.get()
+        self._prev_scaled_unit = self.__unit.get()
 
     def _text_is_valid_quantity_value(self, text: str) -> bool:
         assert isinstance(self.attr, Quantity)
@@ -327,42 +323,42 @@ class Quantity_Entry(Number_Entry):
     def revert(self) -> None:
         assert isinstance(self.attr, Quantity)
         self.__unit.set(self.attr.prefix + self.attr.unit)
-        self.__update_value(self.attr.print(include_unit=False))
+        self._update_value(self.attr.print(include_unit=False))
 
     def set_unit(self, value: str) -> None:
         self.__unit.set(value)
-        self.__update_displayed_value_on_unit_update()
+        self._update_displayed_value_on_unit_update()
 
 
 class Name_Entry(Attribute_Entry):
 
     @property
     def widget(self) -> tk.Entry:
-        return self.__entry
+        return self._entry
 
     @property
     def value(self) -> Any:
-        return self.__entry.get()
+        return self._entry.get()
 
     def _create_entry(self) -> None:
         vcmd = (self.master.register(self._text_is_valid_name), "%P")
-        self.__entry = tk.Entry(self.master, validate="key", validatecommand=vcmd)
-        self.__entry.insert(0, self.attr.value)
+        self._entry = tk.Entry(self.master, validate="key", validatecommand=vcmd)
+        self._entry.insert(0, self.attr.value)
 
     def _confirmed_value(self) -> str:
-        entry_value = self.__entry.get()
+        entry_value = self._entry.get()
         if entry_value == "":
             return self.attr.value
         else:
             return entry_value
 
     def revert(self) -> None:
-        self.__entry.delete(0, tk.END)
-        self.__entry.insert(0, self.attr.value)
+        self._entry.delete(0, tk.END)
+        self._entry.insert(0, self.attr.value)
 
     def set(self, value: str) -> None:
-        self.__entry.delete(0, tk.END)
-        self.__entry.insert(0, value)
+        self._entry.delete(0, tk.END)
+        self._entry.insert(0, value)
 
     def _text_is_valid_name(self, text: str) -> bool:
         return text == "" or self.attr.is_valid(text)
@@ -372,26 +368,26 @@ class Text_Entry(Attribute_Entry):
 
     @property
     def widget(self) -> tk.Text:
-        return self.__text
+        return self._text
 
     @property
     def value(self) -> Any:
-        return self.__text.get(1.0, tk.END)
+        return self._text.get(1.0, tk.END)
 
     def _create_entry(self) -> None:
-        self.__text = tk.Text(self.master, height=10, width=50)
-        self.__text.insert(1.0, self.attr.value)
+        self._text = tk.Text(self.master, height=10, width=50)
+        self._text.insert(1.0, self.attr.value)
 
     def _confirmed_value(self) -> str:
-        return self.__text.get(1.0, tk.END)[:-1]
+        return self._text.get(1.0, tk.END)[:-1]
 
     def revert(self) -> None:
-        self.__text.delete(1.0, tk.END)
-        self.__text.insert(1.0, self.attr.value)
+        self._text.delete(1.0, tk.END)
+        self._text.insert(1.0, self.attr.value)
 
     def set(self, value: str) -> None:
-        self.__text.delete(1.0, tk.END)
-        self.__text.insert(1.0, value)
+        self._text.delete(1.0, tk.END)
+        self._text.insert(1.0, value)
 
 
 from te_tree.core.attributes import Attribute
@@ -402,46 +398,46 @@ class Entry_Creator:
     def new(self, attr: Attribute, master: tk.Frame) -> Attribute_Entry:
         match attr.type:
             case "bool":
-                return self.__boolean(attr, master)
+                return self._boolean(attr, master)
             case "choice":
-                return self.__choice(attr, master)
+                return self._choice(attr, master)
             case "date":
-                return self.__date(attr, master)
+                return self._date(attr, master)
             case "integer":
-                return self.__number(attr, master)
+                return self._number(attr, master)
             case "money":
-                return self.__money(attr, master)
+                return self._money(attr, master)
             case "name":
-                return self.__name(attr, master)
+                return self._name(attr, master)
             case "real":
-                return self.__number(attr, master)
+                return self._number(attr, master)
             case "quantity":
-                return self.__quantity(attr, master)
+                return self._quantity(attr, master)
             case "text":
-                return self.__text(attr, master)
+                return self._text(attr, master)
 
-    def __boolean(self, attr: Attribute, master: tk.Frame) -> Attribute_Entry:
+    def _boolean(self, attr: Attribute, master: tk.Frame) -> Attribute_Entry:
         return Bool_Entry(attr, master)
 
-    def __choice(self, attr: Attribute, master: tk.Frame) -> Choice_Entry:
+    def _choice(self, attr: Attribute, master: tk.Frame) -> Choice_Entry:
         return Choice_Entry(attr, master)
 
-    def __date(self, attr: Attribute, master: tk.Frame) -> Date_Entry:
+    def _date(self, attr: Attribute, master: tk.Frame) -> Date_Entry:
         return Date_Entry(attr, master)
 
-    def __money(self, attr: Attribute, master: tk.Frame) -> Money_Entry:
+    def _money(self, attr: Attribute, master: tk.Frame) -> Money_Entry:
         return Money_Entry(attr, master)
 
-    def __name(self, attr: Attribute, master: tk.Frame) -> Name_Entry:
+    def _name(self, attr: Attribute, master: tk.Frame) -> Name_Entry:
         return Name_Entry(attr, master)
 
-    def __number(self, attr: Attribute, master: tk.Frame) -> Number_Entry:
+    def _number(self, attr: Attribute, master: tk.Frame) -> Number_Entry:
         return Number_Entry(attr, master)
 
-    def __quantity(self, attr: Attribute, master: tk.Frame) -> Quantity_Entry:
+    def _quantity(self, attr: Attribute, master: tk.Frame) -> Quantity_Entry:
         return Quantity_Entry(attr, master)
 
-    def __text(self, attr: Attribute, master: tk.Frame) -> Text_Entry:
+    def _text(self, attr: Attribute, master: tk.Frame) -> Text_Entry:
         return Text_Entry(attr, master)
 
     class UnknownEntryType(Exception):

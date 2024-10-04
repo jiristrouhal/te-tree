@@ -1,16 +1,15 @@
 from __future__ import annotations
 import sys
-
-sys.path.insert(1, "src")
-
-
 import unittest
 import tkinter as tk
 from decimal import Decimal
 
+sys.path.insert(1, "src")
+
 from te_tree.tkgui.attr_entries import Entry_Creator
 from te_tree.core.attributes import attribute_factory
 from te_tree.cmd.commands import Controller
+from te_tree.tkgui.attr_entries import Quantity_Entry
 
 
 class Test_Choice_Entry(unittest.TestCase):
@@ -353,9 +352,6 @@ class Test_Quantity_Entry(unittest.TestCase):
         self.assertEqual(entry.value, "8.1")
         entry.revert()
         self.assertEqual(entry.value, "0.05")
-
-
-from te_tree.tkgui.attr_entries import Quantity_Entry
 
 
 class Test_Quantity_Entry_For_Temperature(unittest.TestCase):
