@@ -6,10 +6,9 @@ from decimal import Decimal
 
 sys.path.insert(1, "src")
 
-from te_tree.tkgui.attr_entries import Entry_Creator
+from te_tree.tkgui.attr_entries import Entry_Creator, Quantity_Entry
 from te_tree.core.attributes import attribute_factory
 from te_tree.cmd.commands import Controller
-from te_tree.tkgui.attr_entries import Quantity_Entry
 
 
 class Test_Choice_Entry(unittest.TestCase):
